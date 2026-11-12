@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab Maya Interaktif: Sarana Sembahyang - SD 2 Negari</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        baligold: '#E6A100',
+                        balired: '#9E2A2B',
+                        baliyellow: '#FFD166',
+                        balidark: '#2B2D42',
+                        balicream: '#FFF9EE',
+                        baligreen: '#2A9D8F'
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #1A1A24 0%, #2D1B36 100%);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Aspect Ratio Container (16:9 responsive wrapper) */
+        .stage-container {
+            width: 100vw;
+            height: 56.25vw; /* 16:9 height relative to width */
+            max-height: 100vh;
+            max-width: 177.78vh; /* 16:9 width relative to height */
+            position: relative;
+            background: #FFF9EE;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Scrollbar for tab content if overflowing micro elements */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #E6A100;
+            border-radius: 10px;
+        }
+
+        /* Drag & Drop Visual Styles */
+        .draggable-item {
+            cursor: grab;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.08);
+            z-index: 50;
+        }
+        .drop-target {
+            transition: all 0.2s ease;
+        }
+        .drop-target.highlight {
+            border-color: #E6A100;
+            background-color: rgba(230, 161, 0, 0.15);
+            transform: scale(1.03);
+        }
+
+        /* Sparkle Animation */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(230,161,0,0.6)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 15px rgba(230,161,0,0.9)); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* Float Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Responsive Stage Wrapper -->
+    <div class="stage-container relative flex flex-col justify-between text-balidark overflow-hidden border-4 border-baligold/40">
+        
+        <!-- TOP NAVBAR / HEADER -->
+        <header id="app-header" class="hidden bg-gradient-to-r from-balired via-red-800 to-balired text-white px-4 py-2 flex items-center justify-between shadow-md z-20 shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-baliyellow text-balired rounded-full flex items-center justify-center font-bold text-xl shadow">
+                    🪔
+                </div>
+                <div>
+                    <h1 class="text-sm md:text-base font-bold tracking-wide leading-tight text-baliyellow">LAB MAYA SARANA SEMBAHYANG</h1>
+                    <p class="text-xs text-red-100 hidden sm:block">Agama Hindu & Budhi Pekerti - Fase A (Kelas 2 SD)</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex items-center space-x-1 sm:space-x-2">
+                <button onclick="switchTab('teori')" id="tab-btn-teori" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 bg-baliyellow text-balired shadow">
+                    <i class="fa-solid fa-book-open"></i> <span class="hidden md:inline">Teori</span>
+                </button>
+                <button onclick="switchTab('prosedur')" id="tab-btn-prosedur" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold hover:bg-white/10 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check"></i> <span class="hidden md:inline">Prosedur</span>
+                </button>
+                <button onclick="switchTab('simulasi')" id="tab-btn-simulasi" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold hover:bg-white/10 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-flask"></i> <span class="hidden md:inline">Simulasi</span>
+                </button>
+                <button onclick="switchTab('lkpd')" id="tab-btn-lkpd" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold hover:bg-white/10 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square"></i> <span class="hidden md:inline">LKPD</span>
+                </button>
+                <button onclick="switchTab('pengembang')" id="tab-btn-pengembang" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold hover:bg-white/10 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-gear"></i> <span class="hidden md:inline">Guru</span>
+                </button>
+            </nav>
+
+            <!-- Sound & Genta Controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="playGentaSound()" class="bg-baligold hover:bg-yellow-400 text-balidark p-1.5 px-2.5 rounded-full text-xs font-bold shadow flex items-center gap-1 transition" title="Bunyikan Genta">
+                    🔔 <span class="hidden lg:inline text-xs">Genta</span>
+                </button>
+                <button onclick="toggleAudio()" id="btn-audio-toggle" class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT VIEWPORT (TAB VIEWS) -->
+        <main class="flex-1 relative overflow-hidden bg-balicream p-3 md:p-4">
+
+            <!-- SPLASH SCREEN -->
+            <div id="splash-screen" class="absolute inset-0 bg-gradient-to-br from-amber-500 via-red-600 to-amber-800 text-white flex flex-col items-center justify-center p-6 z-50">
+                <div class="text-center max-w-2xl mx-auto flex flex-col items-center">
+                    <!-- Ornamental Icon -->
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border-4 border-baliyellow shadow-2xl mb-4 floating">
+                        <span class="text-5xl sm:text-6xl">🪔</span>
+                    </div>
+
+                    <span class="bg-baliyellow text-balired text-xs sm:text-sm font-bold px-4 py-1 rounded-full uppercase tracking-widest shadow mb-2">
+                        SD 2 NEGARII • FASE A KELAS 2
+                    </span>
+                    <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-baliyellow drop-shadow-md tracking-wide mb-2">
+                        LAB MAYA INTERAKTIF
+                    </h1>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white mb-4">
+                        SARANA SEMBAHYANG AGAMA HINDU
+                    </h2>
+                    <p class="text-xs sm:text-sm text-amber-100 max-w-md mb-6 leading-relaxed">
+                        Mari belajar dan mepraktikkan cara mengenal serta menyiapkan sarana sembahyang (Bunga, Dupa, Air Suci, Canang Sari, & Wija) secara interaktif!
+                    </p>
+
+                    <!-- Loading Progress Bar -->
+                    <div id="loading-box" class="w-64 sm:w-80 bg-black/30 rounded-full h-4 p-1 mb-6 border border-white/20">
+                        <div id="loading-bar" class="bg-gradient-to-r from-yellow-300 to-baligold h-full rounded-full w-0 transition-all duration-300"></div>
+                    </div>
+
+                    <!-- Start Button -->
+                    <button id="btn-start" onclick="startLabMaya()" class="hidden px-8 py-3 bg-baliyellow hover:bg-yellow-300 text-balired font-extrabold text-lg rounded-full shadow-xl transition transform hover:scale-105 pulse-glow flex items-center gap-3 border-2 border-white">
+                        <i class="fa-solid fa-play"></i> MULAI LAB MAYA
+                    </button>
+                    
+                    <div class="mt-6 text-xs text-amber-200/80 font-mono">
+                        Pengembang: Ni Putu Diah Dharmayanti, S.Pd.H
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 1: TEORI INTERAKTIF -->
+            <section id="view-teori" class="tab-view h-full flex flex-col justify-between hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-balired flex items-center gap-2">
+                            <span>🌸</span> Mengenal Sarana Sembahyang
+                        </h2>
+                        <p class="text-xs text-gray-600">Klik kartu di bawah ini untuk mendengarkan penjelasan singkat!</p>
+                    </div>
+                </div>
+
+                <!-- Cards Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 flex-1 items-stretch my-auto">
+                    <!-- Bunga -->
+                    <div onclick="playSaranaInfo('bunga')" class="bg-white rounded-xl border-2 border-amber-200 p-3 flex flex-col items-center text-center justify-between shadow-sm hover:shadow-md hover:border-baligold transition cursor-pointer group">
+                        <div class="w-14 h-14 md:w-18 md:h-18 rounded-full bg-red-100 flex items-center justify-center text-3xl md:text-4xl group-hover:scale-110 transition">
+                            🌺
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm md:text-base text-balired">Bunga</h3>
+                            <p class="text-[11px] md:text-xs text-gray-600 mt-1 leading-tight">Simbol ketulusan dan keindahan hati saat menyembah Ida Sang Hyang Widhi.</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-baligold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1">🔊 Suci & Harum</span>
+                    </div>
+
+                    <!-- Dupa -->
+                    <div onclick="playSaranaInfo('dupa')" class="bg-white rounded-xl border-2 border-amber-200 p-3 flex flex-col items-center text-center justify-between shadow-sm hover:shadow-md hover:border-baligold transition cursor-pointer group">
+                        <div class="w-14 h-14 md:w-18 md:h-18 rounded-full bg-orange-100 flex items-center justify-center text-3xl md:text-4xl group-hover:scale-110 transition">
+                            🪔
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm md:text-base text-balired">Dupa</h3>
+                            <p class="text-[11px] md:text-xs text-gray-600 mt-1 leading-tight">Simbol Deva Agni sebagai saksi suci serta pengantar doa ke hadapan Tuhan.</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-baligold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1">🔊 Pengantar Doa</span>
+                    </div>
+
+                    <!-- Air Suci / Tirta -->
+                    <div onclick="playSaranaInfo('tirta')" class="bg-white rounded-xl border-2 border-amber-200 p-3 flex flex-col items-center text-center justify-between shadow-sm hover:shadow-md hover:border-baligold transition cursor-pointer group">
+                        <div class="w-14 h-14 md:w-18 md:h-18 rounded-full bg-blue-100 flex items-center justify-center text-3xl md:text-4xl group-hover:scale-110 transition">
+                            💧
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm md:text-base text-balired">Air Suci / Tirta</h3>
+                            <p class="text-[11px] md:text-xs text-gray-600 mt-1 leading-tight">Pembersih lahir dan batin agar pikiran, perkataan, dan perbuatan menjadi suci.</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-baligold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1">🔊 Pembersih Batin</span>
+                    </div>
+
+                    <!-- Canang Sari -->
+                    <div onclick="playSaranaInfo('canang')" class="bg-white rounded-xl border-2 border-amber-200 p-3 flex flex-col items-center text-center justify-between shadow-sm hover:shadow-md hover:border-baligold transition cursor-pointer group">
+                        <div class="w-14 h-14 md:w-18 md:h-18 rounded-full bg-green-100 flex items-center justify-center text-3xl md:text-4xl group-hover:scale-110 transition">
+                            🍃
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm md:text-base text-balired">Canang Sari</h3>
+                            <p class="text-[11px] md:text-xs text-gray-600 mt-1 leading-tight">Simbol persembahan pokok berisi ceper, porosan, bunga, dan beporosan.</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-baligold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1">🔊 Persembahan Pokok</span>
+                    </div>
+
+                    <!-- Wija / Bijah -->
+                    <div onclick="playSaranaInfo('wija')" class="bg-white rounded-xl border-2 border-amber-200 p-3 flex flex-col items-center text-center justify-between shadow-sm hover:shadow-md hover:border-baligold transition cursor-pointer group">
+                        <div class="w-14 h-14 md:w-18 md:h-18 rounded-full bg-yellow-100 flex items-center justify-center text-3xl md:text-4xl group-hover:scale-110 transition">
+                            🌾
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm md:text-base text-balired">Wija / Bijah</h3>
+                            <p class="text-[11px] md:text-xs text-gray-600 mt-1 leading-tight">Beras suci ditaruh di dahi sebagai simbol benih kedamaian dan kebahagiaan.</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-baligold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1">🔊 Benih Kedamaian</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Description Modal/Bar -->
+                <div id="teori-speech-bubble" class="bg-white border-2 border-baligold rounded-xl p-3 shadow-md flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">💡</span>
+                        <p id="teori-text" class="text-xs md:text-sm font-semibold text-balidark">Klik salah satu sarana sembahyang di atas untuk mendengarkan penjelasannya!</p>
+                    </div>
+                    <button onclick="readAloudTeori()" class="bg-baliyellow hover:bg-yellow-400 text-balired font-bold px-3 py-1 rounded-lg text-xs flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-volume-high"></i> Bacakan
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB 2: PROSEDUR URUTAN SEMBAHYANG -->
+            <section id="view-prosedur" class="tab-view h-full flex flex-col justify-between hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <h2 class="text-lg md:text-xl font-bold text-balired flex items-center gap-2">
+                        <span>📋</span> Urutan Mempersiapkan & Menggunakan Sarana
+                    </h2>
+                    <span id="prosedur-step-badge" class="bg-baligold text-white text-xs font-bold px-3 py-1 rounded-full">Langkah 1 dari 4</span>
+                </div>
+
+                <!-- Step Card Display -->
+                <div class="flex-1 flex items-center justify-center py-2">
+                    <div class="bg-white border-2 border-amber-300 rounded-2xl p-4 md:p-6 shadow-md w-full max-w-2xl flex flex-col md:flex-row items-center gap-4">
+                        <div id="prosedur-icon" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-amber-100 flex items-center justify-center text-5xl sm:text-6xl border-4 border-baliyellow shrink-0">
+                            🧺
+                        </div>
+                        <div class="flex-1 text-center md:text-left">
+                            <h3 id="prosedur-title" class="text-lg md:text-xl font-extrabold text-balired mb-2">1. Menyiapkan Canang & Bunga Fresh</h3>
+                            <p id="prosedur-desc" class="text-xs md:text-sm text-gray-700 leading-relaxed mb-4">
+                                Rapikan ceper canang, letakkan bunga suci beraneka warna di bagian atas canang sari dengan bersih dan rapi.
+                            </p>
+                            <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-xs text-amber-900 font-medium">
+                                ✨ <b>Penting:</b> Pastikan bunga dalam kondisi segar dan belum layu!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps Controller Buttons -->
+                <div class="flex justify-between items-center">
+                    <button onclick="prevProsedurStep()" id="btn-prev-step" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition flex items-center gap-2 opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-arrow-left"></i> Sebelumnya
+                    </button>
+                    <div class="flex space-x-1.5" id="prosedur-dots">
+                        <span class="w-3 h-3 rounded-full bg-baligold"></span>
+                        <span class="w-3 h-3 rounded-full bg-gray-300"></span>
+                        <span class="w-3 h-3 rounded-full bg-gray-300"></span>
+                        <span class="w-3 h-3 rounded-full bg-gray-300"></span>
+                    </div>
+                    <button onclick="nextProsedurStep()" id="btn-next-step" class="px-4 py-2 bg-balired hover:bg-red-800 text-white font-bold rounded-xl text-xs sm:text-sm shadow transition flex items-center gap-2">
+                        Lanjutnya <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB 3: SIMULASI INTERAKTIF (DRAG AND DROP / TAP TO PLACE) -->
+            <section id="view-simulasi" class="tab-view h-full flex flex-col justify-between hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-balired flex items-center gap-2">
+                            <span>🎮</span> Lab Simulasi: Susun Canang Sari & Sarana
+                        </h2>
+                        <p class="text-[11px] text-gray-600">Geser (Drag) atau Ketuk (Tap) bahan ke area tempat persembahan!</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-amber-100 border border-amber-300 rounded-lg px-3 py-1 flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                            ⭐ Skor: <span id="sim-score" class="text-balired text-sm">0</span>/4
+                        </div>
+                        <button onclick="resetSimulasi()" class="bg-red-100 hover:bg-red-200 text-balired text-xs font-bold px-3 py-1.5 rounded-lg border border-red-300 flex items-center gap-1 transition">
+                            <i class="fa-solid fa-rotate-right"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Work Area -->
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 my-1 items-center">
+                    <!-- Left Palette: Available Items -->
+                    <div class="bg-white/80 backdrop-blur rounded-xl p-3 border-2 border-amber-200 flex flex-row md:flex-col justify-around items-center gap-2 h-full">
+                        <h3 class="text-xs font-bold text-balired border-b border-amber-200 pb-1 w-full text-center hidden md:block">
+                            Bahan Sarana
+                        </h3>
+                        
+                        <!-- Draggable 1: Ceper -->
+                        <div id="drag-ceper" draggable="true" ondragstart="handleDragStart(event)" onclick="handleItemTap('ceper')" class="draggable-item bg-amber-50 border-2 border-amber-300 rounded-lg p-2 text-center shadow-sm w-16 md:w-full flex md:flex-row items-center gap-2">
+                            <span class="text-2xl">🍃</span>
+                            <div class="text-left hidden md:block">
+                                <div class="text-xs font-bold text-balidark">1. Ceper/Alas</div>
+                                <div class="text-[10px] text-gray-500">Alas daun kelapa</div>
+                            </div>
+                        </div>
+
+                        <!-- Draggable 2: Porosan -->
+                        <div id="drag-porosan" draggable="true" ondragstart="handleDragStart(event)" onclick="handleItemTap('porosan')" class="draggable-item bg-amber-50 border-2 border-amber-300 rounded-lg p-2 text-center shadow-sm w-16 md:w-full flex md:flex-row items-center gap-2">
+                            <span class="text-2xl">🌿</span>
+                            <div class="text-left hidden md:block">
+                                <div class="text-xs font-bold text-balidark">2. Porosan</div>
+                                <div class="text-[10px] text-gray-500">Sirih, kapur, pinang</div>
+                            </div>
+                        </div>
+
+                        <!-- Draggable 3: Bunga Warni -->
+                        <div id="drag-bunga" draggable="true" ondragstart="handleDragStart(event)" onclick="handleItemTap('bunga')" class="draggable-item bg-amber-50 border-2 border-amber-300 rounded-lg p-2 text-center shadow-sm w-16 md:w-full flex md:flex-row items-center gap-2">
+                            <span class="text-2xl">💐</span>
+                            <div class="text-left hidden md:block">
+                                <div class="text-xs font-bold text-balidark">3. Bunga Warni</div>
+                                <div class="text-[10px] text-gray-500">Merah, kuning, putih</div>
+                            </div>
+                        </div>
+
+                        <!-- Draggable 4: Dupa Nyala -->
+                        <div id="drag-dupa" draggable="true" ondragstart="handleDragStart(event)" onclick="handleItemTap('dupa')" class="draggable-item bg-amber-50 border-2 border-amber-300 rounded-lg p-2 text-center shadow-sm w-16 md:w-full flex md:flex-row items-center gap-2">
+                            <span class="text-2xl">🪔</span>
+                            <div class="text-left hidden md:block">
+                                <div class="text-xs font-bold text-balidark">4. Dupa Menyala</div>
+                                <div class="text-[10px] text-gray-500">Asap suci pengantar</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Drop Target Container (Dulangan / Meja Sembahyang) -->
+                    <div class="md:col-span-2 bg-gradient-to-b from-amber-100 to-amber-200 border-4 border-dashed border-baligold rounded-2xl p-4 flex flex-col items-center justify-center relative h-full min-h-[200px] shadow-inner">
+                        
+                        <!-- Stage Label -->
+                        <div class="absolute top-2 left-3 bg-white/80 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-balired shadow-sm">
+                            Nampan / Dulang Sembahyang
+                        </div>
+
+                        <!-- Visual Drop Target Zone -->
+                        <div id="sim-drop-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" class="drop-target w-48 h-48 md:w-56 md:h-56 bg-white/60 border-4 border-amber-400 rounded-2xl flex flex-col items-center justify-center relative shadow-lg">
+                            
+                            <p id="sim-placeholder" class="text-xs text-amber-800 text-center font-medium px-4">
+                                Tarik atau Ketuk bahan di kiri untuk menyusun Canang Sari di sini!
+                            </p>
+
+                            <!-- Layers dynamically appear here -->
+                            <div id="layer-ceper" class="hidden absolute inset-2 bg-green-200/60 border-2 border-green-500 rounded-xl flex items-center justify-center">
+                                <span class="text-4xl opacity-80">🍃 Ceper Alas</span>
+                            </div>
+                            <div id="layer-porosan" class="hidden absolute inset-6 bg-red-100/80 border-2 border-red-400 rounded-lg flex items-center justify-center">
+                                <span class="text-3xl">🌿 Porosan</span>
+                            </div>
+                            <div id="layer-bunga" class="hidden absolute inset-8 flex items-center justify-center">
+                                <span class="text-5xl animate-bounce">🌸🌺🌼</span>
+                            </div>
+                            <div id="layer-dupa" class="hidden absolute -top-4 -right-4 bg-yellow-300 text-balired p-2 rounded-full border-2 border-baligold text-2xl animate-pulse">
+                                🪔
+                            </div>
+                        </div>
+
+                        <!-- Feedback Message -->
+                        <div id="sim-feedback" class="mt-3 text-xs md:text-sm font-bold text-balired text-center h-5">
+                            Siap menyusun sarana!
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: LKPD (LEMBAR KERJA PESERTA DIDIK INTERAKTIF) -->
+            <section id="view-lkpd" class="tab-view h-full flex flex-col justify-between hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-balired flex items-center gap-2">
+                            <span>📝</span> LKPD: Kuis Jawab & Pasangkan
+                        </h2>
+                        <p class="text-xs text-gray-600">Jawab pertanyaan seputar sarana sembahyang!</p>
+                    </div>
+                    <button onclick="resetLKPD()" class="bg-red-100 hover:bg-red-200 text-balired text-xs font-bold px-3 py-1.5 rounded-lg border border-red-300 flex items-center gap-1 transition">
+                        <i class="fa-solid fa-rotate-right"></i> Ulang Kuis
+                    </button>
+                </div>
+
+                <!-- Quiz Questions Area -->
+                <div class="flex-1 custom-scroll overflow-y-auto pr-1 my-1 space-y-3">
+                    
+                    <!-- Question 1 -->
+                    <div class="bg-white rounded-xl p-3 border-2 border-amber-200 shadow-sm">
+                        <h3 class="text-xs md:text-sm font-bold text-balidark mb-2">
+                            1. Sarana sembahyang yang menghasilkan aroma harum dan sebagai penuntun doa adalah...
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <button onclick="checkAnswer(1, 'A', this)" class="q1-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>A.</span> 🌺 Bunga
+                            </button>
+                            <button onclick="checkAnswer(1, 'B', this)" class="q1-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>B.</span> 🪔 Dupa
+                            </button>
+                            <button onclick="checkAnswer(1, 'C', this)" class="q1-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>C.</span> 🌾 Wija
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="bg-white rounded-xl p-3 border-2 border-amber-200 shadow-sm">
+                        <h3 class="text-xs md:text-sm font-bold text-balidark mb-2">
+                            2. Air suci yang dipergunakan untuk membuang noda dan menyucikan diri dinamakan...
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <button onclick="checkAnswer(2, 'A', this)" class="q2-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>A.</span> 💧 Tirta
+                            </button>
+                            <button onclick="checkAnswer(2, 'B', this)" class="q2-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>B.</span> 🍃 Ceper
+                            </button>
+                            <button onclick="checkAnswer(2, 'C', this)" class="q2-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>C.</span> 🌾 Bijah
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="bg-white rounded-xl p-3 border-2 border-amber-200 shadow-sm">
+                        <h3 class="text-xs md:text-sm font-bold text-balidark mb-2">
+                            3. Wija / Bijah terbuat dari beras suci yang dibasahi air. Dimanakah wija ditempelkan?
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <button onclick="checkAnswer(3, 'A', this)" class="q3-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>A.</span> 🦶 Di Kaki
+                            </button>
+                            <button onclick="checkAnswer(3, 'B', this)" class="q3-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>B.</span> 🧘 Dahi & Dada
+                            </button>
+                            <button onclick="checkAnswer(3, 'C', this)" class="q3-opt p-2 border border-amber-300 rounded-lg hover:bg-amber-50 font-medium transition text-left flex items-center gap-2">
+                                <span>C.</span> 🖐️ Tangan
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer Quiz Summary -->
+                <div class="bg-amber-100 border border-amber-300 rounded-xl p-2.5 flex items-center justify-between">
+                    <div class="text-xs font-bold text-amber-900">
+                        Hasil Evaluasi: <span id="lkpd-score" class="text-balired text-sm">0</span> / 100
+                    </div>
+                    <div id="lkpd-status" class="text-xs font-semibold text-gray-600">
+                        Selesaikan 3 soal di atas!
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: PENGEMBANG (PROFILE DEVELOPER) -->
+            <section id="view-pengembang" class="tab-view h-full flex flex-col justify-between hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg md:text-xl font-bold text-balired flex items-center gap-2">
+                        <span>👩‍🏫</span> Profil Pengembang Lab Maya
+                    </h2>
+                    <span class="bg-baliyellow text-balired text-xs font-bold px-3 py-1 rounded-full shadow">
+                        SD 2 NEGARI
+                    </span>
+                </div>
+
+                <!-- Developer Card -->
+                <div class="flex-1 bg-white border-2 border-amber-300 rounded-2xl p-4 md:p-6 shadow-md flex flex-col md:flex-row items-center gap-6 my-auto">
+                    <!-- Avatar Badge -->
+                    <div class="relative shrink-0">
+                        <div class="w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-tr from-baligold to-balired p-1 shadow-lg">
+                            <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-6xl">
+                                👩‍🏫
+                            </div>
+                        </div>
+                        <span class="absolute bottom-0 right-0 bg-baligreen text-white text-xs px-2.5 py-0.5 rounded-full font-bold shadow">
+                            Guru Agama
+                        </span>
+                    </div>
+
+                    <!-- Profile Details -->
+                    <div class="flex-1 text-center md:text-left space-y-2">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-black text-balired">Ni Putu Diah Dharmayanti, S.Pd.H</h3>
+                            <p class="text-xs md:text-sm font-semibold text-baligold">Guru Agama Hindu & Budhi Pekerti</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs">
+                            <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                <span class="text-gray-500 block text-[10px]">INSTANSI:</span>
+                                <span class="font-bold text-balidark">SD 2 Negari</span>
+                            </div>
+                            <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                <span class="text-gray-500 block text-[10px]">TARGET FASE:</span>
+                                <span class="font-bold text-balidark">Fase A (Kelas 2 SD)</span>
+                            </div>
+                            <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                <span class="text-gray-500 block text-[10px]">TOPIK LAB:</span>
+                                <span class="font-bold text-balidark">Sarana Sembahyang Hindu</span>
+                            </div>
+                            <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                <span class="text-gray-500 block text-[10px]">TEKNOLOGI:</span>
+                                <span class="font-bold text-balidark">Web Standalone (Offline)</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-600 pt-1 italic">
+                            "Mewujudkan pembelajaran Agama Hindu yang menyenangkan, interaktif, dan mudah dipahami bagi generasi muda SD 2 Negari."
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER STATUS BAR -->
+        <footer id="app-footer" class="hidden bg-amber-100 border-t border-amber-300 px-4 py-1.5 flex items-center justify-between text-[11px] text-amber-900 shrink-0">
+            <div>
+                📍 <b>SD 2 Negari</b> • Lab Maya Pendidikan Agama Hindu
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="hidden sm:inline">Pengembang: <b>Ni Putu Diah Dharmayanti</b></span>
+                <span class="bg-baligold/20 px-2 py-0.5 rounded font-mono text-[10px]">v1.0 Offline Ready</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & SYNTHESIZED WEB AUDIO -->
+    <script>
+        /* ==========================================================================
+           1. WEB AUDIO API SYNTHESIZER (NO EXTERNAL AUDIO FILES NEEDED)
+           ========================================================================== */
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+        }
+
+        // Play gentle click sound
+        function playClickSound() {
+            if (isAudioMuted) return;
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+            
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        // Play Balinese Genta (Chime Bell) sound
+        function playGentaSound() {
+            if (isAudioMuted) return;
+            initAudio();
+            
+            const now = audioCtx.currentTime;
+            const freqs = [1046.50, 2093.00, 3135.96]; // C6 harmonic bell frequencies
+            
+            freqs.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                
+                const initialGain = idx === 0 ? 0.3 : 0.1;
+                gain.gain.setValueAtTime(initialGain, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 2.5);
+            });
+        }
+
+        // Play Success Fanfare sound
+        function playSuccessSound() {
+            if (isAudioMuted) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G C
+            
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                
+                gain.gain.setValueAtTime(0.2, now + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(now + i * 0.12);
+                osc.stop(now + i * 0.12 + 0.4);
+            });
+        }
+
+        // Toggle Audio Mute
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const btn = document.getElementById('btn-audio-toggle');
+            if (isAudioMuted) {
+                btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-red-300"></i>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                playClickSound();
+            }
+        }
+
+
+        /* ==========================================================================
+           2. SPLASH SCREEN & LOADING PROGRESS LOGIC
+           ========================================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            const loadingBar = document.getElementById('loading-bar');
+            const btnStart = document.getElementById('btn-start');
+            const loadingBox = document.getElementById('loading-box');
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                loadingBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingBox.classList.add('hidden');
+                        btnStart.classList.remove('hidden');
+                    }, 300);
+                }
+            }, 200);
+        });
+
+        function startLabMaya() {
+            playGentaSound();
+            document.getElementById('splash-screen').classList.add('hidden');
+            document.getElementById('app-header').classList.remove('hidden');
+            document.getElementById('app-header').classList.add('flex');
+            document.getElementById('app-footer').classList.remove('hidden');
+            document.getElementById('app-footer').classList.add('flex');
+            switchTab('teori');
+        }
+
+
+        /* ==========================================================================
+           3. TAB NAVIGATION CONTROLLER
+           ========================================================================== */
+        function switchTab(tabId) {
+            playClickSound();
+            
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-view');
+            tabs.forEach(t => t.classList.add('hidden'));
+
+            // Reset tab button styles
+            const navBtns = document.querySelectorAll('.nav-tab');
+            navBtns.forEach(btn => {
+                btn.classList.remove('bg-baliyellow', 'text-balired', 'shadow');
+                btn.classList.add('hover:bg-white/10');
+            });
+
+            // Active view & button
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-baliyellow', 'text-balired', 'shadow');
+                activeBtn.classList.remove('hover:bg-white/10');
+            }
+        }
+
+
+        /* ==========================================================================
+           4. TAB 1: TEORI SPEECH SYNTHESIS & INFORMATION
+           ========================================================================== */
+        const saranaData = {
+            bunga: "Bunga adalah lambang ketulusan hati dan keindahan saat kita menyembah Tuhan.",
+            dupa: "Dupa menghasilkan aroma harum sebagai saksi suci serta pengantar doa ke hadapan Tuhan.",
+            tirta: "Air suci atau Tirta berguna untuk membersihkan pikiran, perkataan, dan perbuatan kita.",
+            canang: "Canang Sari adalah persembahan pokok yang berisi ceper, porosan, dan bunga warna-warni.",
+            wija: "Wija atau Bijah adalah beras suci yang ditempelkan di dahi sebagai lambang kedamaian."
+        };
+
+        let currentTeoriKey = 'bunga';
+
+        function playSaranaInfo(key) {
+            playClickSound();
+            currentTeoriKey = key;
+            const text = saranaData[key];
+            document.getElementById('teori-text').innerText = text;
+            readAloudTeori();
+        }
+
+        function readAloudTeori() {
+            const text = document.getElementById('teori-text').innerText;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // stop active speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+
+        /* ==========================================================================
+           5. TAB 2: PROSEDUR LANGKAH-LANGKAH
+           ========================================================================== */
+        const prosedurSteps = [
+            {
+                step: 1,
+                title: "1. Menyiapkan Canang & Bunga Fresh",
+                desc: "Rapikan ceper alas canang, letakkan bunga suci beraneka warna di atas ceper dengan rapi.",
+                icon: "🧺"
+            },
+            {
+                step: 2,
+                title: "2. Menyalakan Dupa Suci",
+                desc: "Nyalakan dupa hingga mengeluarkan asap harum sebagai saksi suci Deva Agni.",
+                icon: "🪔"
+            },
+            {
+                step: 3,
+                title: "3. Memercikkan Tirta (Air Suci)",
+                desc: "Mercikkan air suci ke sarana sembahyang dan ke diri sendiri untuk pembersihan lahir batin.",
+                icon: "💧"
+            },
+            {
+                step: 4,
+                title: "4. Memasang Wija / Bijah",
+                desc: "Setelah sembahyang selesai, tempelkan wija/beras suci di dahi untuk kedamaian.",
+                icon: "🌾"
+            }
+        ];
+
+        let currentStepIdx = 0;
+
+        function updateProsedurUI() {
+            const item = prosedurSteps[currentStepIdx];
+            document.getElementById('prosedur-title').innerText = item.title;
+            document.getElementById('prosedur-desc').innerText = item.desc;
+            document.getElementById('prosedur-icon').innerText = item.icon;
+            document.getElementById('prosedur-step-badge').innerText = `Langkah ${item.step} dari 4`;
+
+            // Dots indicator
+            const dotsContainer = document.getElementById('prosedur-dots');
+            dotsContainer.innerHTML = '';
+            prosedurSteps.forEach((_, idx) => {
+                const dot = document.createElement('span');
+                dot.className = `w-3 h-3 rounded-full ${idx === currentStepIdx ? 'bg-baligold' : 'bg-gray-300'}`;
+                dotsContainer.appendChild(dot);
+            });
+
+            // Prev & Next buttons state
+            const prevBtn = document.getElementById('btn-prev-step');
+            const nextBtn = document.getElementById('btn-next-step');
+
+            if (currentStepIdx === 0) {
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            if (currentStepIdx === prosedurSteps.length - 1) {
+                nextBtn.innerText = 'Selesai ✨';
+            } else {
+                nextBtn.innerHTML = 'Lanjutnya <i class="fa-solid fa-arrow-right"></i>';
+            }
+        }
+
+        function nextProsedurStep() {
+            playClickSound();
+            if (currentStepIdx < prosedurSteps.length - 1) {
+                currentStepIdx++;
+                updateProsedurUI();
+            } else {
+                playSuccessSound();
+                switchTab('simulasi');
+            }
+        }
+
+        function prevProsedurStep() {
+            playClickSound();
+            if (currentStepIdx > 0) {
+                currentStepIdx--;
+                updateProsedurUI();
+            }
+        }
+
+
+        /* ==========================================================================
+           6. TAB 3: SIMULASI DRAG & DROP / TAP TO PLACE
+           ========================================================================== */
+        let simState = {
+            ceper: false,
+            porosan: false,
+            bunga: false,
+            dupa: false
+        };
+
+        function handleDragStart(e) {
+            const id = e.target.id.replace('drag-', '');
+            e.dataTransfer.setData('text/plain', id);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('sim-drop-zone').classList.add('highlight');
+        }
+
+        function handleDragLeave(e) {
+            document.getElementById('sim-drop-zone').classList.remove('highlight');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('sim-drop-zone').classList.remove('highlight');
+            const itemKey = e.dataTransfer.getData('text/plain');
+            placeSimItem(itemKey);
+        }
+
+        function handleItemTap(itemKey) {
+            placeSimItem(itemKey);
+        }
+
+        function placeSimItem(itemKey) {
+            const feedback = document.getElementById('sim-feedback');
+
+            // Sequence validation rule: Ceper -> Porosan -> Bunga -> Dupa
+            if (itemKey === 'ceper') {
+                simState.ceper = true;
+                document.getElementById('layer-ceper').classList.remove('hidden');
+                document.getElementById('drag-ceper').classList.add('opacity-40', 'pointer-events-none');
+                feedback.innerText = " Bagus! Ceper alas sudah dipasang.";
+                playClickSound();
+            } else if (itemKey === 'porosan') {
+                if (!simState.ceper) {
+                    feedback.innerText = "❌ Taruh Ceper alas terlebih dahulu!";
+                    return;
+                }
+                simState.porosan = true;
+                document.getElementById('layer-porosan').classList.remove('hidden');
+                document.getElementById('drag-porosan').classList.add('opacity-40', 'pointer-events-none');
+                feedback.innerText = " Mantap! Porosan sudah dimasukkan.";
+                playClickSound();
+            } else if (itemKey === 'bunga') {
+                if (!simState.porosan) {
+                    feedback.innerText = "❌ Masukkan Porosan terlebih dahulu!";
+                    return;
+                }
+                simState.bunga = true;
+                document.getElementById('layer-bunga').classList.remove('hidden');
+                document.getElementById('drag-bunga').classList.add('opacity-40', 'pointer-events-none');
+                feedback.innerText = " Indah sekali! Bunga sudah ditata.";
+                playClickSound();
+            } else if (itemKey === 'dupa') {
+                if (!simState.bunga) {
+                    feedback.innerText = "❌ Selesaikan Canang Sari sebelum menyalakan Dupa!";
+                    return;
+                }
+                simState.dupa = true;
+                document.getElementById('layer-dupa').classList.remove('hidden');
+                document.getElementById('drag-dupa').classList.add('opacity-40', 'pointer-events-none');
+                feedback.innerText = " Sempurna! Dupa harum menyala.";
+                playClickSound();
+            }
+
+            // Hide placeholder text if first item placed
+            document.getElementById('sim-placeholder').classList.add('hidden');
+
+            // Count Score
+            let placedCount = Object.values(simState).filter(Boolean).length;
+            document.getElementById('sim-score').innerText = placedCount;
+
+            if (placedCount === 4) {
+                playSuccessSound();
+                feedback.innerHTML = "🎉 <b>Hore! Canang Sari & Sarana Lengkap Siap Sembahyang!</b> 🎉";
+            }
+        }
+
+        function resetSimulasi() {
+            playClickSound();
+            simState = { ceper: false, porosan: false, bunga: false, dupa: false };
+            
+            document.getElementById('layer-ceper').classList.add('hidden');
+            document.getElementById('layer-porosan').classList.add('hidden');
+            document.getElementById('layer-bunga').classList.add('hidden');
+            document.getElementById('layer-dupa').classList.add('hidden');
+
+            const draggables = ['ceper', 'porosan', 'bunga', 'dupa'];
+            draggables.forEach(id => {
+                document.getElementById('drag-' + id).classList.remove('opacity-40', 'pointer-events-none');
+            });
+
+            document.getElementById('sim-placeholder').classList.remove('hidden');
+            document.getElementById('sim-score').innerText = '0';
+            document.getElementById('sim-feedback').innerText = "Siap menyusun sarana!";
+        }
+
+
+        /* ==========================================================================
+           7. TAB 4: LKPD QUIZ LOGIC
+           ========================================================================== */
+        let lkpdAnswers = { 1: null, 2: null, 3: null };
+        const correctAnswers = { 1: 'B', 2: 'A', 3: 'B' };
+
+        function checkAnswer(qNum, selectedOpt, btnEl) {
+            playClickSound();
+            lkpdAnswers[qNum] = selectedOpt;
+
+            // Clear selected styling for options in this question
+            const opts = document.querySelectorAll(`.q${qNum}-opt`);
+            opts.forEach(b => {
+                b.classList.remove('bg-green-200', 'bg-red-200', 'border-green-500', 'border-red-500', 'font-bold');
+            });
+
+            // Check correctness
+            if (selectedOpt === correctAnswers[qNum]) {
+                btnEl.classList.add('bg-green-200', 'border-green-500', 'font-bold');
+            } else {
+                btnEl.classList.add('bg-red-200', 'border-red-500', 'font-bold');
+            }
+
+            calculateLKPDScore();
+        }
+
+        function calculateLKPDScore() {
+            let score = 0;
+            let answeredCount = 0;
+
+            for (let q = 1; q <= 3; q++) {
+                if (lkpdAnswers[q] !== null) {
+                    answeredCount++;
+                    if (lkpdAnswers[q] === correctAnswers[q]) {
+                        score += 33.33;
+                    }
+                }
+            }
+
+            const finalScore = Math.round(score === 99.99 ? 100 : score);
+            document.getElementById('lkpd-score').innerText = finalScore;
+
+            const statusEl = document.getElementById('lkpd-status');
+            if (answeredCount === 3) {
+                if (finalScore >= 80) {
+                    playSuccessSound();
+                    statusEl.innerHTML = "🌟 <b>Luar Biasa! Nilai Kamu Sangat Baik!</b>";
+                    statusEl.className = "text-xs font-bold text-green-700";
+                } else {
+                    statusEl.innerHTML = "👍 <b>Bagus! Coba Ulangi untuk Nilai 100!</b>";
+                    statusEl.className = "text-xs font-bold text-amber-700";
+                }
+            } else {
+                statusEl.innerText = `Sudah dijawab ${answeredCount} dari 3 soal`;
+            }
+        }
+
+        function resetLKPD() {
+            playClickSound();
+            lkpdAnswers = { 1: null, 2: null, 3: null };
+            document.getElementById('lkpd-score').innerText = '0';
+            document.getElementById('lkpd-status').innerText = 'Selesaikan 3 soal di atas!';
+            document.getElementById('lkpd-status').className = 'text-xs font-semibold text-gray-600';
+
+            const allOpts = document.querySelectorAll('.q1-opt, .q2-opt, .q3-opt');
+            allOpts.forEach(b => {
+                b.classList.remove('bg-green-200', 'bg-red-200', 'border-green-500', 'border-red-500', 'font-bold');
+            });
+        }
+    </script>
+</body>
+</html>
